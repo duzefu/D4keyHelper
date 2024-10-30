@@ -136,6 +136,16 @@ return
 ; 当按下F1时触发宏
 F1::
 ToggleMacro:
+    Critical  ; 设置当前线程为关键线程，防止中断
+    ; 先关闭所有定时器
+    Loop, 4 {
+        SetTimer, PressSkill%A_Index%, Off
+    }
+    SetTimer, PressLeftClick, Off
+    SetTimer, PressRightClick, Off
+    
+    Sleep, 50  ; 添加短暂延迟确保定时器已关闭
+    
     isRunning := !isRunning  ; 切换运行状态
     if (isRunning) {
         isPaused := false  ; 重置暂停状态
@@ -166,16 +176,10 @@ ToggleMacro:
         SB_SetText("宏已启动")
     } else {
         isPaused := false  ; 重置暂停状态
-        ; 关闭所有定时器
-        Loop, 4 {
-            SetTimer, PressSkill%A_Index%, Off
-        }
-        SetTimer, PressLeftClick, Off
-        SetTimer, PressRightClick, Off
-        
         GuiControl,, StatusText, 状态: 已停止
         SB_SetText("宏已停止")
     }
+    Critical, Off  ; 恢复正常线程优先级
 return
 
 ; 卡移速
@@ -273,13 +277,10 @@ ExitApp
 return
 
 ; 在#If WinActive("ahk_class Diablo IV Main Window Class")下修改Tab键处理
-Tab::
+~*Tab::
     if (!isRunning) {
-        Send, {Tab}  ; 如果脚本未运行,直接发送Tab键
         return
     }
-    
-    Send, {Tab}  ; 首先发送Tab键,保持游戏原有功能
     
     isPaused := !isPaused
     
