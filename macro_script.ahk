@@ -275,34 +275,36 @@ GuiClose:
 GuiEscape:
 ExitApp
 return
-
 ; 在#If WinActive("ahk_class Diablo IV Main Window Class")下修改Tab键处理
-~*Tab::
+Tab::
     if (!isRunning) {
         return
     }
     
+    ; 先关闭所有定时器
+    Loop, 4 {
+        GuiControlGet, enabled,, Skill%A_Index%Enable
+        if (enabled) {
+            SetTimer, PressSkill%A_Index%, Off
+        }
+    }
+    
+    GuiControlGet, leftEnabled,, LeftClickEnable
+    if (leftEnabled) {
+        SetTimer, PressLeftClick, Off
+    }
+    
+    GuiControlGet, rightEnabled,, RightClickEnable
+    if (rightEnabled) {
+        SetTimer, PressRightClick, Off
+    }
+    
+    Sleep, 50
+    Send {Tab}
+    
     isPaused := !isPaused
     
     if (isPaused) {
-        ; 暂停所有定时器
-        Loop, 4 {
-            GuiControlGet, enabled,, Skill%A_Index%Enable
-            if (enabled) {
-                SetTimer, PressSkill%A_Index%, Off
-            }
-        }
-        
-        GuiControlGet, leftEnabled,, LeftClickEnable
-        if (leftEnabled) {
-            SetTimer, PressLeftClick, Off
-        }
-        
-        GuiControlGet, rightEnabled,, RightClickEnable
-        if (rightEnabled) {
-            SetTimer, PressRightClick, Off
-        }
-        
         GuiControl,, StatusText, 状态: 已暂停
         SB_SetText("宏已暂停")
     } else {
